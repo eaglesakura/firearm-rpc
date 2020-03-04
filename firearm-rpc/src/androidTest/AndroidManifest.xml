@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.eaglesakura.firearm.rpc.service">
+
+    <application>
+        <service
+            android:name=".ExampleRemoteProcedureServerService"
+            android:process=":remote" />
+    </application>
+</manifest>
