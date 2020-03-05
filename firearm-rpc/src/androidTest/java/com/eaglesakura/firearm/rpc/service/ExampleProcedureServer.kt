@@ -1,20 +1,21 @@
 package com.eaglesakura.firearm.rpc.service
 
-import com.eaglesakura.firearm.rpc.service.routers.RestfulServiceProcedureRouter
+import com.eaglesakura.firearm.rpc.service.routers.ServerProcedureRouter
 
 /**
  * Client to server api.
  * Call from client.
  */
-class ExampleProcedureServer {
-    val router = RestfulServiceProcedureRouter()
+object ExampleProcedureServer {
+    val router = ServerProcedureRouter()
 
     /**
      * Echo request.
      */
-    val echo = router.procedure("/echo")
+    val echo = router.handler("/echo")
+
     /**
      * Hello Request
      */
-    val hello = router.procedure("/")
+    val hello = router.handler("/")
 }

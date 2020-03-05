@@ -7,7 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.eaglesakura.armyknife.runtime.extensions.withChildContext
 import com.eaglesakura.firearm.rpc.service.internal.ServerConnectionImpl
-import com.eaglesakura.firearm.rpc.service.routers.RestfulClientProcedureRouter
+import com.eaglesakura.firearm.rpc.service.routers.ClientProcedureRouter
 import kotlinx.coroutines.Dispatchers
 
 /**
@@ -42,9 +42,9 @@ object ProcedureServerConnectionFactory {
         suspend fun connect(): ProcedureServerConnection {
             return withChildContext(Dispatchers.Main) {
                 val connection = ServerConnectionImpl(
-                        context,
-                        serviceIntent,
-                        callback
+                    context,
+                    serviceIntent,
+                    callback
                 )
                 connection.connect(options ?: Bundle())
                 connection
@@ -64,17 +64,17 @@ object ProcedureServerConnectionFactory {
         block: (builder: Builder) -> Unit = {}
     ): ProcedureServerConnection {
         return connect(
-                context,
-                object : ProcedureClientCallback {
-                    override fun executeOnClient(
-                        connection: ProcedureServerConnection,
-                        path: String,
-                        arguments: Bundle
-                    ): Bundle {
-                        return Bundle()
-                    }
-                },
-                serviceIntent, block
+            context,
+            object : ProcedureClientCallback {
+                override fun executeOnClient(
+                    connection: ProcedureServerConnection,
+                    path: String,
+                    arguments: Bundle
+                ): Bundle {
+                    return Bundle()
+                }
+            },
+            serviceIntent, block
         )
     }
 
@@ -85,22 +85,22 @@ object ProcedureServerConnectionFactory {
      */
     suspend fun connect(
         context: Context,
-        router: RestfulClientProcedureRouter,
+        router: ClientProcedureRouter,
         serviceIntent: Intent,
         block: (builder: Builder) -> Unit = {}
     ): ProcedureServerConnection {
         return connect(
-                context,
-                object : ProcedureClientCallback {
-                    override fun executeOnClient(
-                        connection: ProcedureServerConnection,
-                        path: String,
-                        arguments: Bundle
-                    ): Bundle {
-                        return router(connection, path, arguments)
-                    }
-                },
-                serviceIntent, block
+            context,
+            object : ProcedureClientCallback {
+                override fun executeOnClient(
+                    connection: ProcedureServerConnection,
+                    path: String,
+                    arguments: Bundle
+                ): Bundle {
+                    return router.executeOnClient(connection, path, arguments)
+                }
+            },
+            serviceIntent, block
         )
     }
 

@@ -42,8 +42,7 @@ class RestfulProcedureRouterTest {
                 Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
             require(connection is ProcedureServerConnection)
-            val procedure = ExampleProcedureServer()
-            procedure.hello.fetch(connection, bundleOf("message" to "World"))
+            ExampleProcedureServer.hello.fetch(connection, bundleOf("message" to "World"))
         }
     }
 
@@ -51,8 +50,7 @@ class RestfulProcedureRouterTest {
     fun echoFromServer() = instrumentationBlockingTest {
         val channel = Channel<Unit>()
 
-        val clientRouter = ExampleProcedureClient()
-        clientRouter.ping.listenInClient = { connection, arguments ->
+        ExampleProcedureClient.ping.listenOnClient = { connection, arguments ->
             console("Ping from server[$connection]")
             channel.sendBlocking(Unit)
             Bundle()
@@ -60,12 +58,11 @@ class RestfulProcedureRouterTest {
 
         ProcedureServerConnectionFactory.connect(
                 targetContext,
-                clientRouter.router,
+                ExampleProcedureClient.router,
                 Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
             require(connection is ProcedureServerConnection)
-            val server = ExampleProcedureServer()
-            server.echo.fetch(connection, Bundle())
+            ExampleProcedureServer.echo.fetch(connection, Bundle())
         }
         channel.receive()
     }

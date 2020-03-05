@@ -3,17 +3,20 @@ package com.eaglesakura.firearm.rpc.service.routers
 import android.os.Bundle
 import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 
-class RestfulClientProcedureRouter {
-    private val table = mutableMapOf<String, RestfulClientProcedure>()
+class ClientProcedureRouter {
+    private val table = mutableMapOf<String, ClientProcedure>()
 
-    fun procedure(
+    /**
+     * Add API Handler for Client.
+     */
+    fun handler(
         path: String,
-        builder: (router: RestfulClientProcedureRouter, procedure: RestfulClientProcedure) -> Unit =
+        builder: (router: ClientProcedureRouter, procedure: ClientProcedure) -> Unit =
             { _, _ -> }
-    ): RestfulClientProcedure {
-        return RestfulClientProcedure(path)
+    ): ClientProcedure {
+        return ClientProcedure(path)
             .also { proc ->
-                builder(this@RestfulClientProcedureRouter, proc)
+                builder(this@ClientProcedureRouter, proc)
                 table[path] = proc
             }
     }
@@ -21,12 +24,12 @@ class RestfulClientProcedureRouter {
     /**
      * Handler in client.
      */
-    operator fun invoke(
+    fun executeOnClient(
         connection: ProcedureServerConnection,
         path: String,
         arguments: Bundle
     ): Bundle {
         val proc = table[path] ?: throw IllegalArgumentException("Path[$path] not match")
-        return proc.listenInClient(connection, arguments)
+        return proc.listenOnClient(connection, arguments)
     }
 }

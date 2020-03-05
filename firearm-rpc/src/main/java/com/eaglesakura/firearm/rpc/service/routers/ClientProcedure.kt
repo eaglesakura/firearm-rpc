@@ -9,7 +9,7 @@ import com.eaglesakura.firearm.rpc.service.RemoteClient
 /**
  * Procedure call from service, run in client.
  */
-class RestfulClientProcedure(
+class ClientProcedure(
     /**
      * Procedure path.
      */
@@ -18,7 +18,7 @@ class RestfulClientProcedure(
     /**
      * Implementation stub for Client.
      */
-    lateinit var listenInClient: (connection: ProcedureServerConnection, arguments: Bundle) -> Bundle
+    lateinit var listenOnClient: (connection: ProcedureServerConnection, arguments: Bundle) -> Bundle
 
     /**
      * Request service to client.
