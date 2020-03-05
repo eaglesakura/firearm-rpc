@@ -16,7 +16,7 @@ class ServerProcedure(
     /**
      * Implementation stub for Server.
      */
-    internal lateinit var listenOnServer: (client: RemoteClient, arguments: Bundle) -> Bundle
+    lateinit var listenOnServer: (client: RemoteClient, arguments: Bundle) -> Bundle
 
     /**
      * Request client to server.
