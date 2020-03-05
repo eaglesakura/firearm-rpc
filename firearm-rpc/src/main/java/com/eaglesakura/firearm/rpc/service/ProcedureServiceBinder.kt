@@ -3,8 +3,8 @@ package com.eaglesakura.firearm.rpc.service
 import android.content.Context
 import android.os.Bundle
 import android.os.IBinder
-import androidx.annotation.AnyThread
-import androidx.annotation.UiThread
+import androidx.annotation.WorkerThread
+import androidx.lifecycle.LifecycleOwner
 import com.eaglesakura.firearm.rpc.internal.console
 import com.eaglesakura.firearm.rpc.service.internal.IRemoteProcedureServiceImpl
 import com.eaglesakura.firearm.rpc.service.internal.RemoteRequest
@@ -29,6 +29,7 @@ import kotlin.concurrent.thread
 class ProcedureServiceBinder(
     @Suppress("UNUSED_PARAMETER") context: Context,
     callback: Callback,
+    private val lifecycleOwner: LifecycleOwner,
     private val dispatcher: CoroutineDispatcher
 ) {
     /**
@@ -36,6 +37,7 @@ class ProcedureServiceBinder(
      */
     private val aidlImpl = IRemoteProcedureServiceImpl(
         this,
+        lifecycleOwner,
         dispatcher,
         callback
     )
@@ -102,13 +104,13 @@ class ProcedureServiceBinder(
         /**
          * new connection from client.
          */
-        @UiThread
+        @WorkerThread
         fun onConnectedClient(client: RemoteClient, options: Bundle): Bundle
 
         /**
          * kill connection from client.
          */
-        @UiThread
+        @WorkerThread
         fun onDisconnectedClient(client: RemoteClient)
 
         /**
@@ -119,7 +121,7 @@ class ProcedureServiceBinder(
          * @param path rest path
          * @param arguments optional, arguments for rest path.
          */
-        @AnyThread
-        suspend fun execute(client: RemoteClient, path: String, arguments: Bundle): Bundle
+        @WorkerThread
+        fun execute(client: RemoteClient, path: String, arguments: Bundle): Bundle
     }
 }

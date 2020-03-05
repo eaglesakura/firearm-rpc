@@ -25,7 +25,7 @@ class RestfulServiceProcedureRouter {
     /**
      * Handler in server.
      */
-    suspend operator fun invoke(
+    operator fun invoke(
         client: RemoteClient,
         path: String,
         arguments: Bundle

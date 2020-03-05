@@ -5,10 +5,10 @@ package com.eaglesakura.firearm.rpc.service.client
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import com.eaglesakura.armyknife.runtime.extensions.withChildContext
 import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
 import com.eaglesakura.firearm.rpc.service.internal.ProcedureServiceConnectionImpl
 import com.eaglesakura.firearm.rpc.service.routers.RestfulClientProcedureRouter
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
 /**
@@ -40,22 +40,16 @@ object ProcedureServiceConnectionFactory {
          */
         var options: Bundle? = null
 
-        /**
-         * Optional.
-         * Coroutine dispatcher.
-         */
-        var coroutineDispatcher: CoroutineDispatcher = Dispatchers.Default
-
         suspend fun connect(): ProcedureServiceConnection {
-            val connection =
-                ProcedureServiceConnectionImpl(
-                    context,
-                    serviceIntent,
-                    coroutineDispatcher,
-                    callback
+            return withChildContext(Dispatchers.Main) {
+                val connection = ProcedureServiceConnectionImpl(
+                        context,
+                        serviceIntent,
+                        callback
                 )
-            connection.connect(options ?: Bundle())
-            return connection
+                connection.connect(options ?: Bundle())
+                connection
+            }
         }
     }
 
@@ -71,17 +65,17 @@ object ProcedureServiceConnectionFactory {
         block: (builder: Builder) -> Unit = {}
     ): ProcedureServiceConnection {
         return connect(
-            context,
-            object : ProcedureServiceClientCallback {
-                override suspend fun execute(
-                    connection: ProcedureServiceConnection,
-                    path: String,
-                    arguments: Bundle
-                ): Bundle {
-                    return Bundle()
-                }
-            },
-            serviceIntent, block
+                context,
+                object : ProcedureServiceClientCallback {
+                    override fun execute(
+                        connection: ProcedureServiceConnection,
+                        path: String,
+                        arguments: Bundle
+                    ): Bundle {
+                        return Bundle()
+                    }
+                },
+                serviceIntent, block
         )
     }
 
@@ -97,17 +91,17 @@ object ProcedureServiceConnectionFactory {
         block: (builder: Builder) -> Unit = {}
     ): ProcedureServiceConnection {
         return connect(
-            context,
-            object : ProcedureServiceClientCallback {
-                override suspend fun execute(
-                    connection: ProcedureServiceConnection,
-                    path: String,
-                    arguments: Bundle
-                ): Bundle {
-                    return router(connection, path, arguments)
-                }
-            },
-            serviceIntent, block
+                context,
+                object : ProcedureServiceClientCallback {
+                    override fun execute(
+                        connection: ProcedureServiceConnection,
+                        path: String,
+                        arguments: Bundle
+                    ): Bundle {
+                        return router(connection, path, arguments)
+                    }
+                },
+                serviceIntent, block
         )
     }
 

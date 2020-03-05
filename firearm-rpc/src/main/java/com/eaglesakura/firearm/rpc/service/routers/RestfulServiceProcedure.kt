@@ -42,7 +42,7 @@ class RestfulServiceProcedure<Arguments, ProcedureResult>(
     /**
      * Implementation stub for Server.
      */
-    internal lateinit var serverProcedure: suspend (client: RemoteClient, arguments: Bundle) -> Bundle
+    internal lateinit var serverProcedure: (client: RemoteClient, arguments: Bundle) -> Bundle
 
     /**
      * Request client to server.
@@ -62,9 +62,9 @@ class RestfulServiceProcedure<Arguments, ProcedureResult>(
     }
 
     /**
-     * Request handler in client.
+     * Request handler in server.
      */
-    fun listenInServer(block: suspend (client: RemoteClient, arguments: Arguments) -> ProcedureResult) {
+    fun listenInServer(block: (client: RemoteClient, arguments: Arguments) -> ProcedureResult) {
         serverProcedure = { client, arg ->
             try {
                 resultToBundle(block(client, bundleToArguments(arg)))

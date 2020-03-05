@@ -44,13 +44,13 @@ class RestfulClientProcedure<Arguments, ProcedureResult>(
     /**
      * Implementation stub for Client.
      */
-    internal lateinit var clientProcedure: suspend (connection: ProcedureServiceConnection, arguments: Bundle) -> Bundle
+    internal lateinit var clientProcedure: (connection: ProcedureServiceConnection, arguments: Bundle) -> Bundle
         private set
 
     /**
      * Request handler in client.
      */
-    fun listenInClient(block: suspend (connection: ProcedureServiceConnection, arguments: Arguments) -> ProcedureResult) {
+    fun listenInClient(block: (connection: ProcedureServiceConnection, arguments: Arguments) -> ProcedureResult) {
         clientProcedure = { connection, arg ->
             try {
                 resultToBundle(block(connection, bundleToArguments(arg)))

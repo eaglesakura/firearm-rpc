@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package com.eaglesakura.firearm.rpc.internal
 
 import android.os.Bundle

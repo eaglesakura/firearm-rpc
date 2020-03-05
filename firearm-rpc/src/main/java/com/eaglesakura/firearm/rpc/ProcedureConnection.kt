@@ -7,5 +7,5 @@ interface ProcedureConnection {
     /**
      * Disconnect to remote procedure.
      */
-    suspend fun disconnect()
+    fun disconnect()
 }

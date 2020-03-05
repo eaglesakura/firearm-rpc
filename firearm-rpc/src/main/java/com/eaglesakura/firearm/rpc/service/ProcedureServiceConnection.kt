@@ -1,6 +1,7 @@
 package com.eaglesakura.firearm.rpc.service
 
 import android.os.Bundle
+import androidx.annotation.WorkerThread
 import com.eaglesakura.firearm.rpc.ProcedureConnection
 
 /**
@@ -30,5 +31,6 @@ interface ProcedureServiceConnection : ProcedureConnection {
     /**
      * Execute in remote clientProcedure.
      */
-    suspend fun request(path: String, arguments: Bundle): Bundle
+    @WorkerThread
+    fun request(path: String, arguments: Bundle): Bundle
 }

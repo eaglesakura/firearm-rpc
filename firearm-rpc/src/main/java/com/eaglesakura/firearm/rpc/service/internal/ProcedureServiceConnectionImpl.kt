@@ -12,33 +12,22 @@ import com.eaglesakura.firearm.aidl.IRemoteProcedureService
 import com.eaglesakura.firearm.rpc.ProcedureConnection
 import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
 import com.eaglesakura.firearm.rpc.service.client.ProcedureServiceClientCallback
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
-import kotlin.concurrent.thread
 import kotlin.coroutines.coroutineContext
 
 internal class ProcedureServiceConnectionImpl(
     private val context: Context,
     /**
- * Intent for connect to service.
- */
-private val intent: Intent,
-
-    /**
- * Background dispatcher.
- */
-private val coroutineDispatcher: CoroutineDispatcher,
+     * Intent for connect to service.
+     */
+    private val intent: Intent,
 
     private val callback: ProcedureServiceClientCallback
-
 ) : IRemoteProcedureClient.Stub(), ServiceConnection, ProcedureConnection,
-    ProcedureServiceConnection {
+        ProcedureServiceConnection {
 
     private var name: ComponentName? = null
 
@@ -87,7 +76,7 @@ private val coroutineDispatcher: CoroutineDispatcher,
         // TODO: on Crash remote process.
     }
 
-    override suspend fun disconnect() {
+    override fun disconnect() {
         aidl?.also {
             it.unregister(clientId)
         }
@@ -103,24 +92,14 @@ private val coroutineDispatcher: CoroutineDispatcher,
      * Request to server(from client).
      * run server task.
      */
-    override suspend fun request(path: String, arguments: Bundle): Bundle {
+    override fun request(path: String, arguments: Bundle): Bundle {
         val aidl = this.aidl ?: throw IllegalStateException("Server not connected[$intent]")
         // call remote task.
-        val channel = Channel<Bundle>()
-        thread(name = "Remote:Server:$path") {
-            try {
-                val result = aidl.requestFromClient(clientId, RemoteRequest().also {
-                    it.path = path
-                    it.arguments = arguments
-                }.bundle)!!
-                GlobalScope.launch(coroutineDispatcher) {
-                    channel.send(result)
-                }
-            } catch (e: Exception) {
-                channel.close(e)
-            }
-        }
-        return RemoteRequest.Result(channel.receive()).result!!
+        val result = aidl.requestFromClient(clientId, RemoteRequest().also {
+            it.path = path
+            it.arguments = arguments
+        }.bundle)!!
+        return RemoteRequest.Result(result).result!!
     }
 
     /**
@@ -129,14 +108,14 @@ private val coroutineDispatcher: CoroutineDispatcher,
      */
     override fun requestFromService(arguments: Bundle): Bundle {
         val request = RemoteRequest(arguments)
-        val result = runBlocking(coroutineDispatcher) {
-            // call client task.
-            callback.execute(
+        val channel = Channel<Bundle>()
+
+        // call client task.
+        val result = callback.execute(
                 this@ProcedureServiceConnectionImpl,
                 request.path,
                 request.arguments!!
-            )
-        }
+        )
 
         return RemoteRequest.Result().also {
             it.result = result

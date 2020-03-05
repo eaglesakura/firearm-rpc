@@ -11,20 +11,20 @@ class RestfulClientProcedureRouter {
         builder: (procedure: RestfulClientProcedure<Arguments, ProcedureResult>) -> Unit
     ): RestfulClientProcedure<Arguments, ProcedureResult> {
         return RestfulClientProcedure<Arguments, ProcedureResult>(path)
-            .also { proc ->
-                builder(proc)
-                require(proc.argumentsToBundle == proc.argumentsToBundle)
-                require(proc.bundleToArguments == proc.bundleToArguments)
-                require(proc.resultToBundle == proc.resultToBundle)
-                require(proc.bundleToResult == proc.bundleToResult)
-                table[path] = proc
-            }
+                .also { proc ->
+                    builder(proc)
+                    require(proc.argumentsToBundle == proc.argumentsToBundle)
+                    require(proc.bundleToArguments == proc.bundleToArguments)
+                    require(proc.resultToBundle == proc.resultToBundle)
+                    require(proc.bundleToResult == proc.bundleToResult)
+                    table[path] = proc
+                }
     }
 
     /**
      * Handler in client.
      */
-    suspend operator fun invoke(
+    operator fun invoke(
         connection: ProcedureServiceConnection,
         path: String,
         arguments: Bundle

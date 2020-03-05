@@ -15,6 +15,7 @@ import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
 import com.eaglesakura.firearm.rpc.service.client.ProcedureServiceClientCallback
 import com.eaglesakura.firearm.rpc.service.client.ProcedureServiceConnectionFactory
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.sendBlocking
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -27,17 +28,17 @@ class RestfulProcedureRouterTest {
     @Test
     fun requestToServer() = instrumentationBlockingTest {
         ProcedureServiceConnectionFactory.connect(
-            targetContext,
-            object : ProcedureServiceClientCallback {
-                override suspend fun execute(
-                    connection: ProcedureServiceConnection,
-                    path: String,
-                    arguments: Bundle
-                ): Bundle {
-                    return Bundle()
-                }
-            },
-            Intent(testContext, ExampleRemoteProcedureServerService::class.java)
+                targetContext,
+                object : ProcedureServiceClientCallback {
+                    override fun execute(
+                        connection: ProcedureServiceConnection,
+                        path: String,
+                        arguments: Bundle
+                    ): Bundle {
+                        return Bundle()
+                    }
+                },
+                Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
             require(connection is ProcedureServiceConnection)
             val procedure = ExampleProcedureServer()
@@ -52,14 +53,14 @@ class RestfulProcedureRouterTest {
         val clientRouter = ExampleProcedureClient()
         clientRouter.ping.listenInClient { connection, arguments ->
             console("Ping from server[$connection]")
-            channel.send(Unit)
+            channel.sendBlocking(Unit)
             ExampleProcedureServer.VoidBundle()
         }
 
         ProcedureServiceConnectionFactory.connect(
-            targetContext,
-            clientRouter.router,
-            Intent(testContext, ExampleRemoteProcedureServerService::class.java)
+                targetContext,
+                clientRouter.router,
+                Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
             require(connection is ProcedureServiceConnection)
             val server = ExampleProcedureServer()

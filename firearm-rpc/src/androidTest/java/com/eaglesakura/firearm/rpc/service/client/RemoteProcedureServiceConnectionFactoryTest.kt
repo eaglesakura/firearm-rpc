@@ -11,7 +11,10 @@ import com.eaglesakura.firearm.rpc.extensions.use
 import com.eaglesakura.firearm.rpc.service.ExampleRemoteProcedureServerService
 import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
 import kotlinx.coroutines.channels.Channel
-import org.junit.Assert.* // ktlint-disable no-wildcard-imports
+import kotlinx.coroutines.channels.sendBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -21,17 +24,17 @@ class RemoteProcedureServiceConnectionFactoryTest {
     @Test
     fun newConnection() = instrumentationBlockingTest {
         val connection = ProcedureServiceConnectionFactory.connect(
-                targetContext,
-                object : ProcedureServiceClientCallback {
-                    override suspend fun execute(
-                        connection: ProcedureServiceConnection,
-                        path: String,
-                        arguments: Bundle
-                    ): Bundle {
-                        return Bundle()
-                    }
-                },
-                Intent(testContext, ExampleRemoteProcedureServerService::class.java)
+            targetContext,
+            object : ProcedureServiceClientCallback {
+                override fun execute(
+                    connection: ProcedureServiceConnection,
+                    path: String,
+                    arguments: Bundle
+                ): Bundle {
+                    return Bundle()
+                }
+            },
+            Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         )
         assertNotEquals("", connection.clientId)
         assertNotNull(connection.connectionHints) // access ok.
@@ -41,17 +44,17 @@ class RemoteProcedureServiceConnectionFactoryTest {
     @Test
     fun requestToServer() = instrumentationBlockingTest {
         ProcedureServiceConnectionFactory.connect(
-                targetContext,
-                object : ProcedureServiceClientCallback {
-                    override suspend fun execute(
-                        connection: ProcedureServiceConnection,
-                        path: String,
-                        arguments: Bundle
-                    ): Bundle {
-                        return Bundle()
-                    }
-                },
-                Intent(testContext, ExampleRemoteProcedureServerService::class.java)
+            targetContext,
+            object : ProcedureServiceClientCallback {
+                override fun execute(
+                    connection: ProcedureServiceConnection,
+                    path: String,
+                    arguments: Bundle
+                ): Bundle {
+                    return Bundle()
+                }
+            },
+            Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
             require(connection is ProcedureServiceConnection)
             connection.request("/", bundleOf(Pair("Hello", "World")))
@@ -62,25 +65,25 @@ class RemoteProcedureServiceConnectionFactoryTest {
     fun echoFromServer() = instrumentationBlockingTest {
         val channel = Channel<Unit>()
         ProcedureServiceConnectionFactory.connect(
-                targetContext,
-                object : ProcedureServiceClientCallback {
-                    override suspend fun execute(
-                        connection: ProcedureServiceConnection,
-                        path: String,
-                        arguments: Bundle
-                    ): Bundle {
-                        assertEquals("/ping", path)
-                        channel.send(Unit)
-                        return Bundle()
-                    }
-                },
-                Intent(testContext, ExampleRemoteProcedureServerService::class.java)
+            targetContext,
+            object : ProcedureServiceClientCallback {
+                override fun execute(
+                    connection: ProcedureServiceConnection,
+                    path: String,
+                    arguments: Bundle
+                ): Bundle {
+                    assertEquals("/ping", path)
+                    channel.sendBlocking(Unit)
+                    return Bundle()
+                }
+            },
+            Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
             (connection as ProcedureServiceConnection).request(
-                    "/echo",
-                    bundleOf(
-                            Pair("Hello", "Echo")
-                    )
+                "/echo",
+                bundleOf(
+                    Pair("Hello", "Echo")
+                )
             )
         }
 
