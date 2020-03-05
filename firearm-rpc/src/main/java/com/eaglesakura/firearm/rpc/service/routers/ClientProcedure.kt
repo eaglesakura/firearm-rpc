@@ -35,7 +35,7 @@ class ClientProcedure(
      * Request service to all clients.
      * Execute in all clients.
      */
-    fun fetch(
+    fun broadcast(
         binder: ProcedureServiceBinder,
         arguments: Bundle
     ): List<BroadcastResult> {

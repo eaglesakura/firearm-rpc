@@ -15,18 +15,18 @@ interface ProcedureClientCallback {
     @WorkerThread
     fun executeOnClient(
         /**
-     * Sender connection.
-     */
-    connection: ProcedureServerConnection,
+         * Sender connection.
+         */
+        connection: ProcedureServerConnection,
 
         /**
-     * Request path in client.
-     */
-    path: String,
+         * Request path in client.
+         */
+        path: String,
 
         /**
-     * arguments.
-     */
-    arguments: Bundle
+         * arguments.
+         */
+        arguments: Bundle
     ): Bundle
 }
