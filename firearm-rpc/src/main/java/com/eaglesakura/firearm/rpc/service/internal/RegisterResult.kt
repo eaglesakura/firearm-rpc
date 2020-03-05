@@ -7,7 +7,7 @@ import com.eaglesakura.firearm.rpc.internal.delegateStringExtra
 /**
  * Result at IRemoteProcedureServer.register()
  *
- * @see IRemoteProcedureServiceImpl
+ * @see ProcedureServerBinderImpl
  */
 internal class RegisterResult internal constructor(
     internal val bundle: Bundle = Bundle()
@@ -15,7 +15,7 @@ internal class RegisterResult internal constructor(
     /**
      * Unique id of your client.
      */
-    var clientId: String by bundle.delegateStringExtra("request.EXTRA_ID", "")
+    var connectionId: String by bundle.delegateStringExtra("request.EXTRA_ID", "")
 
     /**
      * Options in register.

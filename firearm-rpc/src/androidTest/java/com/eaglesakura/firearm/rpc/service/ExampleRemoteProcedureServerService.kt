@@ -7,14 +7,13 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.LifecycleService
 import com.eaglesakura.armyknife.android.extensions.assertWorkerThread
 import com.eaglesakura.firearm.rpc.internal.console
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureServiceBinder.Callback {
 
     private val serverService =
-        ProcedureServiceBinder(this, this, this, Dispatchers.Default)
+        ProcedureServiceBinder(this, this)
 
     private val serverRouter = ExampleProcedureServer()
 
@@ -23,7 +22,7 @@ class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureService
     init {
         serverRouter.echo.listenInServer { client, arguments ->
             GlobalScope.launch {
-                clientRouter.ping(client, ExampleProcedureServer.VoidBundle())
+                clientRouter.ping.fetch(client, ExampleProcedureServer.VoidBundle())
             }
 
             ExampleProcedureServer.VoidBundle()
@@ -58,7 +57,7 @@ class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureService
         console("Disconnected client[${client.id}]")
     }
 
-    override fun execute(client: RemoteClient, path: String, arguments: Bundle): Bundle {
+    override fun executeOnServer(client: RemoteClient, path: String, arguments: Bundle): Bundle {
         console("Hello Remote Call!! [$path]")
         return serverRouter.router(client, path, arguments)
     }

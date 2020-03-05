@@ -2,8 +2,8 @@ package com.eaglesakura.firearm.rpc.service.routers
 
 import android.os.Bundle
 import com.eaglesakura.firearm.rpc.service.BroadcastResult
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 import com.eaglesakura.firearm.rpc.service.ProcedureServiceBinder
-import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
 import com.eaglesakura.firearm.rpc.service.RemoteClient
 import kotlinx.coroutines.CancellationException
 
@@ -44,13 +44,13 @@ class RestfulClientProcedure<Arguments, ProcedureResult>(
     /**
      * Implementation stub for Client.
      */
-    internal lateinit var clientProcedure: (connection: ProcedureServiceConnection, arguments: Bundle) -> Bundle
+    internal lateinit var clientProcedure: (connection: ProcedureServerConnection, arguments: Bundle) -> Bundle
         private set
 
     /**
      * Request handler in client.
      */
-    fun listenInClient(block: (connection: ProcedureServiceConnection, arguments: Arguments) -> ProcedureResult) {
+    fun listenInClient(block: (connection: ProcedureServerConnection, arguments: Arguments) -> ProcedureResult) {
         clientProcedure = { connection, arg ->
             try {
                 resultToBundle(block(connection, bundleToArguments(arg)))
@@ -66,12 +66,12 @@ class RestfulClientProcedure<Arguments, ProcedureResult>(
      * Request service to client.
      * Execute in client.
      */
-    suspend operator fun invoke(
+    fun fetch(
         client: RemoteClient,
         arguments: Arguments
     ): ProcedureResult {
         try {
-            return bundleToResult(client.request(path, argumentsToBundle(arguments)))
+            return bundleToResult(client.executeOnClient(path, argumentsToBundle(arguments)))
         } catch (err: CancellationException) {
             throw err
         } catch (err: Exception) {
@@ -83,14 +83,14 @@ class RestfulClientProcedure<Arguments, ProcedureResult>(
      * Request service to all clients.
      * Execute in all clients.
      */
-    suspend operator fun invoke(
+    fun fetch(
         binder: ProcedureServiceBinder,
         arguments: Arguments
     ): List<BroadcastResult<ProcedureResult>> {
         val result = mutableListOf<BroadcastResult<ProcedureResult>>()
         for (client in binder.allClients) {
             try {
-                result.add(BroadcastResult(client, invoke(client, arguments), null))
+                result.add(BroadcastResult(client, fetch(client, arguments), null))
             } catch (e: Exception) {
                 result.add(BroadcastResult(client, null, e))
             }

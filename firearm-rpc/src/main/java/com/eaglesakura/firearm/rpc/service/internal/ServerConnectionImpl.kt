@@ -10,35 +10,35 @@ import android.os.IBinder
 import com.eaglesakura.firearm.aidl.IRemoteProcedureClient
 import com.eaglesakura.firearm.aidl.IRemoteProcedureService
 import com.eaglesakura.firearm.rpc.ProcedureConnection
-import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
-import com.eaglesakura.firearm.rpc.service.client.ProcedureServiceClientCallback
-import kotlinx.coroutines.channels.Channel
+import com.eaglesakura.firearm.rpc.internal.blockingRunInWorker
+import com.eaglesakura.firearm.rpc.service.ProcedureClientCallback
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.yield
 import kotlin.coroutines.coroutineContext
 
-internal class ProcedureServiceConnectionImpl(
+internal class ServerConnectionImpl(
     private val context: Context,
     /**
      * Intent for connect to service.
      */
     private val intent: Intent,
 
-    private val callback: ProcedureServiceClientCallback
+    private val callback: ProcedureClientCallback
 ) : IRemoteProcedureClient.Stub(), ServiceConnection, ProcedureConnection,
-        ProcedureServiceConnection {
+        ProcedureServerConnection {
 
     private var name: ComponentName? = null
 
     private var aidl: IRemoteProcedureService? = null
 
-    private var _clientId: String? = null
+    private var _connectionId: String? = null
 
     private var _connectionHints: Bundle? = null
 
-    override val clientId: String
-        get() = _clientId!!
+    override val connectionId: String
+        get() = _connectionId!!
 
     override val connectionHints: Bundle
         get() = _connectionHints!!
@@ -52,7 +52,7 @@ internal class ProcedureServiceConnectionImpl(
             if (aidl != null) {
                 val result = aidl!!.register(this, options)!!
                 RegisterResult(result).also {
-                    this._clientId = it.clientId
+                    this._connectionId = it.connectionId
                     this._connectionHints = it.connectionHings!!
                 }
                 return
@@ -78,13 +78,13 @@ internal class ProcedureServiceConnectionImpl(
 
     override fun disconnect() {
         aidl?.also {
-            it.unregister(clientId)
+            it.unregister(connectionId)
         }
 
         context.unbindService(this)
         name = null
         aidl = null
-        _clientId = null
+        _connectionId = null
         _connectionHints = null
     }
 
@@ -92,13 +92,15 @@ internal class ProcedureServiceConnectionImpl(
      * Request to server(from client).
      * run server task.
      */
-    override fun request(path: String, arguments: Bundle): Bundle {
+    override fun executeOnServer(path: String, arguments: Bundle): Bundle {
         val aidl = this.aidl ?: throw IllegalStateException("Server not connected[$intent]")
         // call remote task.
-        val result = aidl.requestFromClient(clientId, RemoteRequest().also {
-            it.path = path
-            it.arguments = arguments
-        }.bundle)!!
+        val result = blockingRunInWorker("rpc-from[$connectionId]-to-[Server]:$path") {
+            aidl.requestFromClient(connectionId, RemoteRequest().also {
+                it.path = path
+                it.arguments = arguments
+            }.bundle)!!
+        }
         return RemoteRequest.Result(result).result!!
     }
 
@@ -108,14 +110,14 @@ internal class ProcedureServiceConnectionImpl(
      */
     override fun requestFromService(arguments: Bundle): Bundle {
         val request = RemoteRequest(arguments)
-        val channel = Channel<Bundle>()
-
         // call client task.
-        val result = callback.execute(
-                this@ProcedureServiceConnectionImpl,
-                request.path,
-                request.arguments!!
-        )
+        val result = blockingRunInWorker("rpc-from[Server]-to-[$connectionId]:${request.path}") {
+            callback.executeOnClient(
+                    this@ServerConnectionImpl,
+                    request.path,
+                    request.arguments!!
+            )
+        }
 
         return RemoteRequest.Result().also {
             it.result = result

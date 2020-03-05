@@ -2,21 +2,18 @@ package com.eaglesakura.firearm.rpc.service.internal
 
 import android.os.Bundle
 import androidx.annotation.WorkerThread
-import androidx.lifecycle.LifecycleOwner
 import com.eaglesakura.armyknife.android.extensions.assertWorkerThread
 import com.eaglesakura.firearm.aidl.IRemoteProcedureClient
 import com.eaglesakura.firearm.aidl.IRemoteProcedureService
+import com.eaglesakura.firearm.rpc.internal.blockingRunInWorker
 import com.eaglesakura.firearm.rpc.internal.console
 import com.eaglesakura.firearm.rpc.service.ProcedureServiceBinder
 import com.eaglesakura.firearm.rpc.service.RemoteClient
-import kotlinx.coroutines.CoroutineDispatcher
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal class IRemoteProcedureServiceImpl(
+internal class ProcedureServerBinderImpl(
     private val parent: ProcedureServiceBinder,
-    private val lifecycleOwner: LifecycleOwner,
-    private val coroutineDispatcher: CoroutineDispatcher,
     private val callback: ProcedureServiceBinder.Callback
 ) : IRemoteProcedureService.Stub() {
     private val clients: MutableMap<String, RemoteClient> = mutableMapOf()
@@ -48,7 +45,7 @@ internal class IRemoteProcedureServiceImpl(
             val connectionHints = callback.onConnectedClient(client, options)
             console("Register client id[${client.id}] [$aidl]")
             return@withLock RegisterResult().also {
-                it.clientId = client.id
+                it.connectionId = client.id
                 it.connectionHings = connectionHints
             }.bundle
         }
@@ -69,11 +66,14 @@ internal class IRemoteProcedureServiceImpl(
 
         console("requestFromClient from[${client.id}] [$client]")
 
-        val result = callback.execute(
-            client,
-            remoteRequest.path,
-            remoteRequest.arguments!!
-        )
+        val result =
+            blockingRunInWorker("prc-from[${client.id}]-to-[Server]:${remoteRequest.path}") {
+                callback.executeOnServer(
+                    client,
+                    remoteRequest.path,
+                    remoteRequest.arguments!!
+                )
+            }
         return RemoteRequest.Result().also {
             it.result = result
         }.bundle

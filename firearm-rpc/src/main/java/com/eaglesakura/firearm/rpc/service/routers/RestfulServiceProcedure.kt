@@ -1,7 +1,7 @@
 package com.eaglesakura.firearm.rpc.service.routers
 
 import android.os.Bundle
-import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 import com.eaglesakura.firearm.rpc.service.RemoteClient
 import kotlinx.coroutines.CancellationException
 
@@ -48,12 +48,12 @@ class RestfulServiceProcedure<Arguments, ProcedureResult>(
      * Request client to server.
      * Execute in server.
      */
-    suspend operator fun invoke(
-        connection: ProcedureServiceConnection,
+    fun fetch(
+        connection: ProcedureServerConnection,
         arguments: Arguments
     ): ProcedureResult {
         try {
-            return bundleToResult(connection.request(path, argumentsToBundle(arguments)))
+            return bundleToResult(connection.executeOnServer(path, argumentsToBundle(arguments)))
         } catch (err: CancellationException) {
             throw err
         } catch (err: Exception) {

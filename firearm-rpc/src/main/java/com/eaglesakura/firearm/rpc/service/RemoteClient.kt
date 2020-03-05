@@ -20,7 +20,7 @@ class RemoteClient internal constructor(
      * Request to client(from server).
      * run client task.
      */
-    suspend fun request(path: String, arguments: Bundle): Bundle {
-        return parent.request(this, path, arguments)
+    fun executeOnClient(path: String, arguments: Bundle): Bundle {
+        return parent.requestToClient(this, path, arguments)
     }
 }

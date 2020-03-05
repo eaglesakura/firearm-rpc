@@ -11,9 +11,9 @@ import com.eaglesakura.firearm.rpc.internal.console
 import com.eaglesakura.firearm.rpc.service.ExampleProcedureClient
 import com.eaglesakura.firearm.rpc.service.ExampleProcedureServer
 import com.eaglesakura.firearm.rpc.service.ExampleRemoteProcedureServerService
-import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
-import com.eaglesakura.firearm.rpc.service.client.ProcedureServiceClientCallback
-import com.eaglesakura.firearm.rpc.service.client.ProcedureServiceConnectionFactory
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
+import com.eaglesakura.firearm.rpc.service.ProcedureClientCallback
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnectionFactory
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import org.junit.Test
@@ -27,11 +27,11 @@ class RestfulProcedureRouterTest {
 
     @Test
     fun requestToServer() = instrumentationBlockingTest {
-        ProcedureServiceConnectionFactory.connect(
+        ProcedureServerConnectionFactory.connect(
                 targetContext,
-                object : ProcedureServiceClientCallback {
-                    override fun execute(
-                        connection: ProcedureServiceConnection,
+                object : ProcedureClientCallback {
+                    override fun executeOnClient(
+                        connection: ProcedureServerConnection,
                         path: String,
                         arguments: Bundle
                     ): Bundle {
@@ -40,9 +40,9 @@ class RestfulProcedureRouterTest {
                 },
                 Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
-            require(connection is ProcedureServiceConnection)
+            require(connection is ProcedureServerConnection)
             val procedure = ExampleProcedureServer()
-            procedure.hello(connection, ExampleProcedureServer.HelloArguments("World"))
+            procedure.hello.fetch(connection, ExampleProcedureServer.HelloArguments("World"))
         }
     }
 
@@ -57,14 +57,14 @@ class RestfulProcedureRouterTest {
             ExampleProcedureServer.VoidBundle()
         }
 
-        ProcedureServiceConnectionFactory.connect(
+        ProcedureServerConnectionFactory.connect(
                 targetContext,
                 clientRouter.router,
                 Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
-            require(connection is ProcedureServiceConnection)
+            require(connection is ProcedureServerConnection)
             val server = ExampleProcedureServer()
-            server.echo(connection, ExampleProcedureServer.EchoArguments(Bundle()))
+            server.echo.fetch(connection, ExampleProcedureServer.EchoArguments(Bundle()))
         }
         channel.receive()
     }

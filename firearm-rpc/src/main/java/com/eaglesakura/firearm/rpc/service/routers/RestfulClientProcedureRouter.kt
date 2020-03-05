@@ -1,7 +1,7 @@
 package com.eaglesakura.firearm.rpc.service.routers
 
 import android.os.Bundle
-import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 
 class RestfulClientProcedureRouter {
     private val table = mutableMapOf<String, RestfulClientProcedure<*, *>>()
@@ -25,7 +25,7 @@ class RestfulClientProcedureRouter {
      * Handler in client.
      */
     operator fun invoke(
-        connection: ProcedureServiceConnection,
+        connection: ProcedureServerConnection,
         path: String,
         arguments: Bundle
     ): Bundle {

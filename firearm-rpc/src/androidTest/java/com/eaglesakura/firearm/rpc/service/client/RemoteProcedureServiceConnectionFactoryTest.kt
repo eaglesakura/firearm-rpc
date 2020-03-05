@@ -9,7 +9,9 @@ import com.eaglesakura.armyknife.android.junit4.extensions.targetContext
 import com.eaglesakura.armyknife.android.junit4.extensions.testContext
 import com.eaglesakura.firearm.rpc.extensions.use
 import com.eaglesakura.firearm.rpc.service.ExampleRemoteProcedureServerService
-import com.eaglesakura.firearm.rpc.service.ProcedureServiceConnection
+import com.eaglesakura.firearm.rpc.service.ProcedureClientCallback
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnectionFactory
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import org.junit.Assert.assertEquals
@@ -23,11 +25,12 @@ class RemoteProcedureServiceConnectionFactoryTest {
 
     @Test
     fun newConnection() = instrumentationBlockingTest {
-        val connection = ProcedureServiceConnectionFactory.connect(
+        val connection = ProcedureServerConnectionFactory.connect(
             targetContext,
-            object : ProcedureServiceClientCallback {
-                override fun execute(
-                    connection: ProcedureServiceConnection,
+            object :
+                ProcedureClientCallback {
+                override fun executeOnClient(
+                    connection: ProcedureServerConnection,
                     path: String,
                     arguments: Bundle
                 ): Bundle {
@@ -36,18 +39,19 @@ class RemoteProcedureServiceConnectionFactoryTest {
             },
             Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         )
-        assertNotEquals("", connection.clientId)
+        assertNotEquals("", connection.connectionId)
         assertNotNull(connection.connectionHints) // access ok.
         connection.disconnect()
     }
 
     @Test
     fun requestToServer() = instrumentationBlockingTest {
-        ProcedureServiceConnectionFactory.connect(
+        ProcedureServerConnectionFactory.connect(
             targetContext,
-            object : ProcedureServiceClientCallback {
-                override fun execute(
-                    connection: ProcedureServiceConnection,
+            object :
+                ProcedureClientCallback {
+                override fun executeOnClient(
+                    connection: ProcedureServerConnection,
                     path: String,
                     arguments: Bundle
                 ): Bundle {
@@ -56,19 +60,20 @@ class RemoteProcedureServiceConnectionFactoryTest {
             },
             Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
-            require(connection is ProcedureServiceConnection)
-            connection.request("/", bundleOf(Pair("Hello", "World")))
+            require(connection is ProcedureServerConnection)
+            connection.executeOnServer("/", bundleOf(Pair("Hello", "World")))
         }
     }
 
     @Test
     fun echoFromServer() = instrumentationBlockingTest {
         val channel = Channel<Unit>()
-        ProcedureServiceConnectionFactory.connect(
+        ProcedureServerConnectionFactory.connect(
             targetContext,
-            object : ProcedureServiceClientCallback {
-                override fun execute(
-                    connection: ProcedureServiceConnection,
+            object :
+                ProcedureClientCallback {
+                override fun executeOnClient(
+                    connection: ProcedureServerConnection,
                     path: String,
                     arguments: Bundle
                 ): Bundle {
@@ -79,7 +84,7 @@ class RemoteProcedureServiceConnectionFactoryTest {
             },
             Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
-            (connection as ProcedureServiceConnection).request(
+            (connection as ProcedureServerConnection).executeOnServer(
                 "/echo",
                 bundleOf(
                     Pair("Hello", "Echo")

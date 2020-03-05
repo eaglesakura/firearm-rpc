@@ -17,11 +17,11 @@ import com.eaglesakura.firearm.rpc.ProcedureConnection
  *
  * @see com.eaglesakura.firearm.rpc.service.ProcedureServiceBinder
  */
-interface ProcedureServiceConnection : ProcedureConnection {
+interface ProcedureServerConnection : ProcedureConnection {
     /**
      * Identifier of connection.
      */
-    val clientId: String
+    val connectionId: String
 
     /**
      * Server connectionHings at registered.
@@ -32,5 +32,5 @@ interface ProcedureServiceConnection : ProcedureConnection {
      * Execute in remote clientProcedure.
      */
     @WorkerThread
-    fun request(path: String, arguments: Bundle): Bundle
+    fun executeOnServer(path: String, arguments: Bundle): Bundle
 }

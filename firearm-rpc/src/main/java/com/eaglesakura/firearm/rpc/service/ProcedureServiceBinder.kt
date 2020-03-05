@@ -4,22 +4,17 @@ import android.content.Context
 import android.os.Bundle
 import android.os.IBinder
 import androidx.annotation.WorkerThread
-import androidx.lifecycle.LifecycleOwner
+import com.eaglesakura.armyknife.android.extensions.assertWorkerThread
 import com.eaglesakura.firearm.rpc.internal.console
-import com.eaglesakura.firearm.rpc.service.internal.IRemoteProcedureServiceImpl
+import com.eaglesakura.firearm.rpc.service.internal.ProcedureServerBinderImpl
 import com.eaglesakura.firearm.rpc.service.internal.RemoteRequest
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlin.concurrent.thread
 
 /**
  * Remote Procedure server instance.
  *
  * e.g.)
  * class FooService : LifecycleService(), ProcedureServiceBinder.Callback  {
- *      private val serverService = ProcedureServiceBinder(this, this, Dispatchers.Default)
+ *      private val serverService = ProcedureServiceBinder(this, this as ProcedureServiceBinder.Callback)
  *
  *      override fun onBind(intent: Intent?): IBinder? {
  *          return serverService.binder
@@ -28,17 +23,13 @@ import kotlin.concurrent.thread
  */
 class ProcedureServiceBinder(
     @Suppress("UNUSED_PARAMETER") context: Context,
-    callback: Callback,
-    private val lifecycleOwner: LifecycleOwner,
-    private val dispatcher: CoroutineDispatcher
+    callback: Callback
 ) {
     /**
      *
      */
-    private val aidlImpl = IRemoteProcedureServiceImpl(
+    private val aidlImpl = ProcedureServerBinderImpl(
         this,
-        lifecycleOwner,
-        dispatcher,
         callback
     )
 
@@ -58,37 +49,31 @@ class ProcedureServiceBinder(
     /**
      * Execute in remote client.
      */
-    suspend fun request(client: RemoteClient, path: String, arguments: Bundle): Bundle {
-        val channel = Channel<Bundle>()
-        thread(name = "Remote:${client.id}:$path") {
-            try {
-                val request = RemoteRequest().also {
-                    it.path = path
-                    it.arguments = arguments
-                }.bundle
-                val result = client.aidl.requestFromService(request)!!
-                GlobalScope.launch(dispatcher) {
-                    channel.send(result)
-                }
-            } catch (e: Exception) {
-                channel.close(e)
-            }
-        }
-        return RemoteRequest.Result(channel.receive()).result!!
+    @WorkerThread
+    fun requestToClient(client: RemoteClient, path: String, arguments: Bundle): Bundle {
+        assertWorkerThread()
+        val request = RemoteRequest().also {
+            it.path = path
+            it.arguments = arguments
+        }.bundle
+        val result = client.aidl.requestFromService(request)!!
+        return RemoteRequest.Result(result).result!!
     }
 
     /**
      * Execute all remote client.
      */
-    suspend fun broadcast(path: String, arguments: Bundle): List<BroadcastResult<Bundle>> {
-        val clients = aidlImpl.allClients
+    @WorkerThread
+    fun broadcastToClients(path: String, arguments: Bundle): List<BroadcastResult<Bundle>> {
+        assertWorkerThread()
+        val clients = aidlImpl.allClients.toList() // copy snapshot.
         val result = mutableListOf<BroadcastResult<Bundle>>()
         for (client in clients) {
             try {
                 result.add(
                     BroadcastResult(
                         client,
-                        client.request(path, arguments),
+                        client.executeOnClient(path, arguments),
                         null
                     )
                 )
@@ -122,6 +107,6 @@ class ProcedureServiceBinder(
          * @param arguments optional, arguments for rest path.
          */
         @WorkerThread
-        fun execute(client: RemoteClient, path: String, arguments: Bundle): Bundle
+        fun executeOnServer(client: RemoteClient, path: String, arguments: Bundle): Bundle
     }
 }
