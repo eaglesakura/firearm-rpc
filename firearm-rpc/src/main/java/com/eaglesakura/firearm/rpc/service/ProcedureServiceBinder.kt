@@ -57,7 +57,7 @@ class ProcedureServiceBinder(
             it.path = path
             it.arguments = arguments
         }.bundle
-        val result = blockingRunInWorker("rpc-from[Server]-to-[${client.id}]/on-Server") {
+        val result = blockingRunInWorker("Server:[Server]->[${client.id}]:$path") {
             client.aidl.requestFromService(request)!!
         }
         return RemoteRequest.Result(result).result!!

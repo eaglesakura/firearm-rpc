@@ -65,7 +65,7 @@ internal class RemoteProcedureServerBinderImpl(
         }
 
         val result =
-            blockingRunInWorker("rpc-from[${client.id}]-to-[Server]:${remoteRequest.path}/on-Server") {
+            blockingRunInWorker("Server:[${client.id}]->[Server]:${remoteRequest.path}") {
                 callback.executeOnServer(
                     client,
                     remoteRequest.path,

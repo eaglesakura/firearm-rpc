@@ -99,7 +99,7 @@ internal class ServerConnectionImpl(
     override fun executeOnServer(path: String, arguments: Bundle): Bundle {
         val aidl = this.aidl ?: throw IllegalStateException("Server not connected[$intent]")
         // call remote task.
-        val result = blockingRunInWorker("rpc-from[$connectionId]-to-[Server]:$path//on-Client") {
+        val result = blockingRunInWorker("Client:[$connectionId]->[Server]:$path") {
             aidl.requestFromClient(connectionId, RemoteRequest().also {
                 it.path = path
                 it.arguments = arguments
@@ -116,7 +116,7 @@ internal class ServerConnectionImpl(
         val request = RemoteRequest(arguments)
         // call client task.
         val result =
-            blockingRunInWorker("rpc-from[Server]-to-[$connectionId]:${request.path}//on-Client") {
+            blockingRunInWorker("Client:[Server]->[$connectionId]:${request.path}") {
                 callback.executeOnClient(
                     this@ServerConnectionImpl,
                     request.path,
