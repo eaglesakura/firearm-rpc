@@ -7,12 +7,14 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import com.eaglesakura.armyknife.runtime.extensions.withChildContext
 import com.eaglesakura.firearm.aidl.IRemoteProcedureClient
 import com.eaglesakura.firearm.aidl.IRemoteProcedureService
 import com.eaglesakura.firearm.rpc.ProcedureConnection
 import com.eaglesakura.firearm.rpc.internal.blockingRunInWorker
 import com.eaglesakura.firearm.rpc.service.ProcedureClientCallback
 import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.yield
@@ -27,7 +29,7 @@ internal class ServerConnectionImpl(
 
     private val callback: ProcedureClientCallback
 ) : IRemoteProcedureClient.Stub(), ServiceConnection, ProcedureConnection,
-        ProcedureServerConnection {
+    ProcedureServerConnection {
 
     private var name: ComponentName? = null
 
@@ -50,7 +52,9 @@ internal class ServerConnectionImpl(
         context.bindService(intent, this, BIND_AUTO_CREATE)
         while (coroutineContext.isActive) {
             if (aidl != null) {
-                val result = aidl!!.register(this, options)!!
+                val result = withChildContext(Dispatchers.IO) {
+                    aidl!!.register(this@ServerConnectionImpl, options)!!
+                }
                 RegisterResult(result).also {
                     this._connectionId = it.connectionId
                     this._connectionHints = it.connectionHings!!
@@ -113,9 +117,9 @@ internal class ServerConnectionImpl(
         // call client task.
         val result = blockingRunInWorker("rpc-from[Server]-to-[$connectionId]:${request.path}") {
             callback.executeOnClient(
-                    this@ServerConnectionImpl,
-                    request.path,
-                    request.arguments!!
+                this@ServerConnectionImpl,
+                request.path,
+                request.arguments!!
             )
         }
 
