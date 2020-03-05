@@ -6,7 +6,7 @@ import com.eaglesakura.firearm.rpc.service.routers.ServerProcedureRouter
  * Client to server api.
  * Call from client.
  */
-object ExampleProcedureServer {
+class ExampleServer {
     val router = ServerProcedureRouter()
 
     /**

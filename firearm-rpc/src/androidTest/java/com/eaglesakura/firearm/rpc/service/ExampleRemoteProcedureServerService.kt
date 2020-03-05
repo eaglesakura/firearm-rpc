@@ -15,15 +15,19 @@ class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureService
     private val serverService =
         ProcedureServiceBinder(this, this)
 
+    private val exampleServer = ExampleServer()
+
+    private val exampleClient = ExampleClient()
+
     init {
-        ExampleProcedureServer.echo.listenOnServer = { client, arguments ->
+        exampleServer.echo.listenOnServer = { client, arguments ->
             GlobalScope.launch {
-                ExampleProcedureClient.ping.fetch(client, Bundle())
+                exampleClient.ping.fetch(client, Bundle())
             }
             Bundle()
         }
 
-        ExampleProcedureServer.hello.listenOnServer = { client, arguments ->
+        exampleServer.hello.listenOnServer = { client, arguments ->
             console("message [${arguments.getString("message")}]")
             Bundle()
         }
@@ -43,7 +47,7 @@ class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureService
     override fun onConnectedClient(client: RemoteClient, options: Bundle): Bundle {
         assertWorkerThread()
         console("Connected client[${client.id}]")
-        return Bundle() // Void.
+        return Bundle()
     }
 
     @WorkerThread
@@ -54,6 +58,6 @@ class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureService
 
     override fun executeOnServer(client: RemoteClient, path: String, arguments: Bundle): Bundle {
         console("Hello Remote Call!! [$path]")
-        return ExampleProcedureServer.router.executeOnServer(client, path, arguments)
+        return exampleServer.router.executeOnServer(client, path, arguments)
     }
 }

@@ -7,7 +7,7 @@ import com.eaglesakura.firearm.rpc.internal.delegateStringExtra
 /**
  * Result at IRemoteProcedureServer.register()
  *
- * @see ProcedureServerBinderImpl
+ * @see RemoteProcedureServerBinderImpl
  */
 internal class RegisterResult internal constructor(
     internal val bundle: Bundle = Bundle()

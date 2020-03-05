@@ -7,8 +7,8 @@ dependencies {
     /**
      * Kotlin support
      */
-    "api"("com.eaglesakura.armyknife.armyknife-runtime:armyknife-runtime:1.3.6")
-    "api"("com.eaglesakura.armyknife.armyknife-jetpack:armyknife-jetpack:1.4.9")
+    "implementation"("com.eaglesakura.armyknife.armyknife-runtime:armyknife-runtime:1.3.6")
+    "implementation"("com.eaglesakura.armyknife.armyknife-jetpack:armyknife-jetpack:1.4.9")
 
     "compileOnly"("androidx.annotation:annotation:1.1.0")
     "compileOnly"("androidx.core:core:1.2.0")

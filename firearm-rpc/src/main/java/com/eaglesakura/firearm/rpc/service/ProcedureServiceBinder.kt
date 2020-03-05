@@ -5,8 +5,9 @@ import android.os.Bundle
 import android.os.IBinder
 import androidx.annotation.WorkerThread
 import com.eaglesakura.armyknife.android.extensions.assertWorkerThread
+import com.eaglesakura.firearm.rpc.internal.blockingRunInWorker
 import com.eaglesakura.firearm.rpc.internal.console
-import com.eaglesakura.firearm.rpc.service.internal.ProcedureServerBinderImpl
+import com.eaglesakura.firearm.rpc.service.internal.RemoteProcedureServerBinderImpl
 import com.eaglesakura.firearm.rpc.service.internal.RemoteRequest
 
 /**
@@ -28,7 +29,7 @@ class ProcedureServiceBinder(
     /**
      *
      */
-    private val aidlImpl = ProcedureServerBinderImpl(
+    private val aidlImpl = RemoteProcedureServerBinderImpl(
         this,
         callback
     )
@@ -56,7 +57,9 @@ class ProcedureServiceBinder(
             it.path = path
             it.arguments = arguments
         }.bundle
-        val result = client.aidl.requestFromService(request)!!
+        val result = blockingRunInWorker("rpc-from[Server]-to-[${client.id}]") {
+            client.aidl.requestFromService(request)!!
+        }
         return RemoteRequest.Result(result).result!!
     }
 

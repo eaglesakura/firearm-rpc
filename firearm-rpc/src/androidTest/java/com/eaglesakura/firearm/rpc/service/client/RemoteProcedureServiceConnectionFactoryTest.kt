@@ -27,8 +27,7 @@ class RemoteProcedureServiceConnectionFactoryTest {
     fun newConnection() = instrumentationBlockingTest {
         val connection = ProcedureServerConnectionFactory.connect(
             targetContext,
-            object :
-                ProcedureClientCallback {
+            object : ProcedureClientCallback {
                 override fun executeOnClient(
                     connection: ProcedureServerConnection,
                     path: String,
@@ -48,8 +47,7 @@ class RemoteProcedureServiceConnectionFactoryTest {
     fun requestToServer() = instrumentationBlockingTest {
         ProcedureServerConnectionFactory.connect(
             targetContext,
-            object :
-                ProcedureClientCallback {
+            object : ProcedureClientCallback {
                 override fun executeOnClient(
                     connection: ProcedureServerConnection,
                     path: String,
@@ -60,7 +58,6 @@ class RemoteProcedureServiceConnectionFactoryTest {
             },
             Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
-            require(connection is ProcedureServerConnection)
             connection.executeOnServer("/", bundleOf(Pair("Hello", "World")))
         }
     }
@@ -70,8 +67,7 @@ class RemoteProcedureServiceConnectionFactoryTest {
         val channel = Channel<Unit>()
         ProcedureServerConnectionFactory.connect(
             targetContext,
-            object :
-                ProcedureClientCallback {
+            object : ProcedureClientCallback {
                 override fun executeOnClient(
                     connection: ProcedureServerConnection,
                     path: String,
@@ -84,7 +80,7 @@ class RemoteProcedureServiceConnectionFactoryTest {
             },
             Intent(testContext, ExampleRemoteProcedureServerService::class.java)
         ).use { connection ->
-            (connection as ProcedureServerConnection).executeOnServer(
+            connection.executeOnServer(
                 "/echo",
                 bundleOf(
                     Pair("Hello", "Echo")

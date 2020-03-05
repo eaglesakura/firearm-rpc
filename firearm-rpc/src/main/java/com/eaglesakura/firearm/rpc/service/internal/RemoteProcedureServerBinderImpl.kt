@@ -12,7 +12,7 @@ import com.eaglesakura.firearm.rpc.service.RemoteClient
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal class ProcedureServerBinderImpl(
+internal class RemoteProcedureServerBinderImpl(
     private val parent: ProcedureServiceBinder,
     private val callback: ProcedureServiceBinder.Callback
 ) : IRemoteProcedureService.Stub() {
@@ -63,8 +63,6 @@ internal class ProcedureServerBinderImpl(
         val client = lock.withLock {
             clients[clientId] ?: return Bundle() // or Void.
         }
-
-        console("requestFromClient from[${client.id}] [$client]")
 
         val result =
             blockingRunInWorker("prc-from[${client.id}]-to-[Server]:${remoteRequest.path}") {

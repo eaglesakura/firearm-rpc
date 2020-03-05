@@ -12,7 +12,7 @@ import com.eaglesakura.firearm.rpc.ProcedureConnection
  *      require(connection is Remote)
  * }
  */
-suspend fun <T> ProcedureConnection.use(block: (suspend (connection: ProcedureConnection) -> T)) {
+suspend fun <C : ProcedureConnection, T> C.use(block: (suspend (connection: C) -> T)) {
     try {
         block(this)
     } finally {
