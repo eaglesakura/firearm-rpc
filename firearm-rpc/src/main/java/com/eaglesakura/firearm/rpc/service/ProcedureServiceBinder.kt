@@ -64,10 +64,10 @@ class ProcedureServiceBinder(
      * Execute all remote client.
      */
     @WorkerThread
-    fun broadcastToClients(path: String, arguments: Bundle): List<BroadcastResult<Bundle>> {
+    fun broadcastToClients(path: String, arguments: Bundle): List<BroadcastResult> {
         assertWorkerThread()
         val clients = aidlImpl.allClients.toList() // copy snapshot.
-        val result = mutableListOf<BroadcastResult<Bundle>>()
+        val result = mutableListOf<BroadcastResult>()
         for (client in clients) {
             try {
                 result.add(

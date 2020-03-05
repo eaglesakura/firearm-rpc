@@ -5,7 +5,7 @@ import com.eaglesakura.firearm.rpc.service.BroadcastResult
 /**
  * Check broadcast completed.
  */
-val <T> List<BroadcastResult<T>>.allSuccess: Boolean
+val List<BroadcastResult>.allSuccess: Boolean
     get() {
         this.forEach {
             if (it.failed) {
@@ -18,8 +18,8 @@ val <T> List<BroadcastResult<T>>.allSuccess: Boolean
 /**
  * Listing all failed broadcast in this list.
  */
-fun <T> List<BroadcastResult<T>>.listFailed(): List<BroadcastResult<T>> {
-    val result = mutableListOf<BroadcastResult<T>>()
+fun List<BroadcastResult>.listFailed(): List<BroadcastResult> {
+    val result = mutableListOf<BroadcastResult>()
     this.forEach {
         if (it.failed) {
             result.add(it)

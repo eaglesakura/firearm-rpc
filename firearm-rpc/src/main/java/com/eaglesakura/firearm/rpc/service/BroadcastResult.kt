@@ -2,12 +2,14 @@
 
 package com.eaglesakura.firearm.rpc.service
 
+import android.os.Bundle
+
 /**
  * Service to all-client broadcast results.
  */
-data class BroadcastResult<T>(
+data class BroadcastResult(
     val client: RemoteClient,
-    val result: T?,
+    val result: Bundle?,
     val error: Exception?
 ) {
     /**

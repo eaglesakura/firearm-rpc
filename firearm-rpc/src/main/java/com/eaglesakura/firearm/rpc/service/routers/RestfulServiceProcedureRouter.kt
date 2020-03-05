@@ -4,20 +4,16 @@ import android.os.Bundle
 import com.eaglesakura.firearm.rpc.service.RemoteClient
 
 class RestfulServiceProcedureRouter {
-    private val table = mutableMapOf<String, RestfulServiceProcedure<*, *>>()
+    private val table = mutableMapOf<String, RestfulServiceProcedure>()
 
-    fun <Arguments, ProcedureResult> procedure(
+    fun procedure(
         path: String,
-        builder: (procedure: RestfulServiceProcedure<Arguments, ProcedureResult>) -> Unit
+        builder: (procedure: RestfulServiceProcedure) -> Unit = {}
     ):
-            RestfulServiceProcedure<Arguments, ProcedureResult> {
-        return RestfulServiceProcedure<Arguments, ProcedureResult>(path)
+            RestfulServiceProcedure {
+        return RestfulServiceProcedure(path)
             .also { proc ->
                 builder(proc)
-                require(proc.argumentsToBundle == proc.argumentsToBundle)
-                require(proc.bundleToArguments == proc.bundleToArguments)
-                require(proc.resultToBundle == proc.resultToBundle)
-                require(proc.bundleToResult == proc.bundleToResult)
                 table[path] = proc
             }
     }
@@ -31,6 +27,6 @@ class RestfulServiceProcedureRouter {
         arguments: Bundle
     ): Bundle {
         val proc = table[path] ?: throw IllegalArgumentException("Path[$path] not match")
-        return proc.serverProcedure(client, arguments)
+        return proc.listenInServer(client, arguments)
     }
 }

@@ -2,6 +2,7 @@ package com.eaglesakura.firearm.rpc.service.routers
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.eaglesakura.armyknife.android.junit4.extensions.instrumentationBlockingTest
 import com.eaglesakura.armyknife.android.junit4.extensions.targetContext
@@ -11,8 +12,8 @@ import com.eaglesakura.firearm.rpc.internal.console
 import com.eaglesakura.firearm.rpc.service.ExampleProcedureClient
 import com.eaglesakura.firearm.rpc.service.ExampleProcedureServer
 import com.eaglesakura.firearm.rpc.service.ExampleRemoteProcedureServerService
-import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 import com.eaglesakura.firearm.rpc.service.ProcedureClientCallback
+import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 import com.eaglesakura.firearm.rpc.service.ProcedureServerConnectionFactory
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
@@ -42,7 +43,7 @@ class RestfulProcedureRouterTest {
         ).use { connection ->
             require(connection is ProcedureServerConnection)
             val procedure = ExampleProcedureServer()
-            procedure.hello.fetch(connection, ExampleProcedureServer.HelloArguments("World"))
+            procedure.hello.fetch(connection, bundleOf("message" to "World"))
         }
     }
 
@@ -51,10 +52,10 @@ class RestfulProcedureRouterTest {
         val channel = Channel<Unit>()
 
         val clientRouter = ExampleProcedureClient()
-        clientRouter.ping.listenInClient { connection, arguments ->
+        clientRouter.ping.listenInClient = { connection, arguments ->
             console("Ping from server[$connection]")
             channel.sendBlocking(Unit)
-            ExampleProcedureServer.VoidBundle()
+            Bundle()
         }
 
         ProcedureServerConnectionFactory.connect(
@@ -64,7 +65,7 @@ class RestfulProcedureRouterTest {
         ).use { connection ->
             require(connection is ProcedureServerConnection)
             val server = ExampleProcedureServer()
-            server.echo.fetch(connection, ExampleProcedureServer.EchoArguments(Bundle()))
+            server.echo.fetch(connection, Bundle())
         }
         channel.receive()
     }

@@ -8,32 +8,12 @@ import kotlinx.coroutines.CancellationException
 /**
  * Procedure call from client, run in service.
  */
-class RestfulServiceProcedure<Arguments, ProcedureResult>(
+class RestfulServiceProcedure(
     /**
      * Procedure path.
      */
     val path: String
 ) {
-    /**
-     * Convert Arguments to Bundle.
-     */
-    lateinit var argumentsToBundle: (arguments: Arguments) -> Bundle
-
-    /**
-     * Convert Bundle to Arguments.
-     */
-    lateinit var bundleToArguments: (arguments: Bundle) -> Arguments
-
-    /**
-     * Convert Bundle to ProcedureResult.
-     */
-    lateinit var bundleToResult: (result: Bundle) -> ProcedureResult
-
-    /**
-     * Convert ProcedureResult to Bundle.
-     */
-    lateinit var resultToBundle: (result: ProcedureResult) -> Bundle
-
     /**
      * Convert exception.
      */
@@ -42,7 +22,7 @@ class RestfulServiceProcedure<Arguments, ProcedureResult>(
     /**
      * Implementation stub for Server.
      */
-    internal lateinit var serverProcedure: (client: RemoteClient, arguments: Bundle) -> Bundle
+    internal lateinit var listenInServer: (client: RemoteClient, arguments: Bundle) -> Bundle
 
     /**
      * Request client to server.
@@ -50,29 +30,14 @@ class RestfulServiceProcedure<Arguments, ProcedureResult>(
      */
     fun fetch(
         connection: ProcedureServerConnection,
-        arguments: Arguments
-    ): ProcedureResult {
+        arguments: Bundle
+    ): Bundle {
         try {
-            return bundleToResult(connection.executeOnServer(path, argumentsToBundle(arguments)))
+            return connection.executeOnServer(path, arguments)
         } catch (err: CancellationException) {
             throw err
         } catch (err: Exception) {
             throw errorMap(err)
-        }
-    }
-
-    /**
-     * Request handler in server.
-     */
-    fun listenInServer(block: (client: RemoteClient, arguments: Arguments) -> ProcedureResult) {
-        serverProcedure = { client, arg ->
-            try {
-                resultToBundle(block(client, bundleToArguments(arg)))
-            } catch (err: CancellationException) {
-                throw err
-            } catch (err: Exception) {
-                throw errorMap(err)
-            }
         }
     }
 }

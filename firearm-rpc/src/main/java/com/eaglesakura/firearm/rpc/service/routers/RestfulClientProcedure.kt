@@ -5,62 +5,20 @@ import com.eaglesakura.firearm.rpc.service.BroadcastResult
 import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
 import com.eaglesakura.firearm.rpc.service.ProcedureServiceBinder
 import com.eaglesakura.firearm.rpc.service.RemoteClient
-import kotlinx.coroutines.CancellationException
 
 /**
  * Procedure call from service, run in client.
  */
-class RestfulClientProcedure<Arguments, ProcedureResult>(
+class RestfulClientProcedure(
     /**
      * Procedure path.
      */
     val path: String
 ) {
     /**
-     * Convert Arguments to Bundle.
-     */
-    lateinit var argumentsToBundle: (arguments: Arguments) -> Bundle
-
-    /**
-     * Convert Bundle to Arguments.
-     */
-    lateinit var bundleToArguments: (arguments: Bundle) -> Arguments
-
-    /**
-     * Convert Bundle to ProcedureResult.
-     */
-    lateinit var bundleToResult: (result: Bundle) -> ProcedureResult
-
-    /**
-     * Convert ProcedureResult to Bundle.
-     */
-    lateinit var resultToBundle: (result: ProcedureResult) -> Bundle
-
-    /**
-     * Convert exception.
-     */
-    var errorMap: (error: Exception) -> Exception = { it }
-
-    /**
      * Implementation stub for Client.
      */
-    internal lateinit var clientProcedure: (connection: ProcedureServerConnection, arguments: Bundle) -> Bundle
-        private set
-
-    /**
-     * Request handler in client.
-     */
-    fun listenInClient(block: (connection: ProcedureServerConnection, arguments: Arguments) -> ProcedureResult) {
-        clientProcedure = { connection, arg ->
-            try {
-                resultToBundle(block(connection, bundleToArguments(arg)))
-            } catch (err: CancellationException) {
-                throw err
-            } catch (err: Exception) {
-                throw errorMap(err)
-            }
-        }
-    }
+    lateinit var listenInClient: (connection: ProcedureServerConnection, arguments: Bundle) -> Bundle
 
     /**
      * Request service to client.
@@ -68,15 +26,9 @@ class RestfulClientProcedure<Arguments, ProcedureResult>(
      */
     fun fetch(
         client: RemoteClient,
-        arguments: Arguments
-    ): ProcedureResult {
-        try {
-            return bundleToResult(client.executeOnClient(path, argumentsToBundle(arguments)))
-        } catch (err: CancellationException) {
-            throw err
-        } catch (err: Exception) {
-            throw errorMap(err)
-        }
+        arguments: Bundle
+    ): Bundle {
+        return client.executeOnClient(path, arguments)
     }
 
     /**
@@ -85,9 +37,9 @@ class RestfulClientProcedure<Arguments, ProcedureResult>(
      */
     fun fetch(
         binder: ProcedureServiceBinder,
-        arguments: Arguments
-    ): List<BroadcastResult<ProcedureResult>> {
-        val result = mutableListOf<BroadcastResult<ProcedureResult>>()
+        arguments: Bundle
+    ): List<BroadcastResult> {
+        val result = mutableListOf<BroadcastResult>()
         for (client in binder.allClients) {
             try {
                 result.add(BroadcastResult(client, fetch(client, arguments), null))

@@ -20,17 +20,16 @@ class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureService
     private val clientRouter = ExampleProcedureClient()
 
     init {
-        serverRouter.echo.listenInServer { client, arguments ->
+        serverRouter.echo.listenInServer = { client, arguments ->
             GlobalScope.launch {
-                clientRouter.ping.fetch(client, ExampleProcedureServer.VoidBundle())
+                clientRouter.ping.fetch(client, Bundle())
             }
-
-            ExampleProcedureServer.VoidBundle()
+            Bundle()
         }
 
-        serverRouter.hello.listenInServer { client, arguments ->
-            console("Message [${arguments.message}]")
-            ExampleProcedureServer.VoidBundle()
+        serverRouter.hello.listenInServer = { client, arguments ->
+            console("message [${arguments.getString("message")}]")
+            Bundle()
         }
     }
 
