@@ -1,8 +1,8 @@
 package com.eaglesakura.firearm.rpc.service.internal
 
 import android.os.Bundle
-import com.eaglesakura.firearm.rpc.internal.delegateBundleExtra
-import com.eaglesakura.firearm.rpc.internal.delegateStringExtra
+import com.eaglesakura.armyknife.persistence.extensions.delegateBundleExtra
+import com.eaglesakura.armyknife.persistence.extensions.delegateStringExtra
 
 /**
  * Result at IRemoteProcedureServer.register()
