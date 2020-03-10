@@ -2,6 +2,7 @@ package com.eaglesakura.firearm.rpc.service
 
 import android.os.Bundle
 import androidx.annotation.WorkerThread
+import androidx.lifecycle.LifecycleOwner
 import com.eaglesakura.firearm.rpc.ProcedureConnection
 
 /**
@@ -17,7 +18,7 @@ import com.eaglesakura.firearm.rpc.ProcedureConnection
  *
  * @see com.eaglesakura.firearm.rpc.service.ProcedureServiceBinder
  */
-interface ProcedureServerConnection : ProcedureConnection {
+interface ProcedureServerConnection : ProcedureConnection, LifecycleOwner {
     /**
      * Identifier of connection.
      */

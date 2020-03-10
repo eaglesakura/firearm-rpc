@@ -9,6 +9,7 @@ import com.eaglesakura.firearm.rpc.internal.blockingRunInWorker
 import com.eaglesakura.firearm.rpc.internal.console
 import com.eaglesakura.firearm.rpc.service.ProcedureServiceBinder
 import com.eaglesakura.firearm.rpc.service.RemoteClient
+import java.io.IOException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -83,6 +84,11 @@ internal class RemoteProcedureServerBinderImpl(
 
         lock.withLock {
             clients.remove(clientId)?.also { client ->
+                try {
+                    client.close()
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
                 callback.onDisconnectedClient(client)
             }
         }

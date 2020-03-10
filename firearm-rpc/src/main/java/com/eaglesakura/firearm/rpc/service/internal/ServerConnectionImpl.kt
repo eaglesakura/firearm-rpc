@@ -7,6 +7,10 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleRegistry
+import com.eaglesakura.armyknife.android.extensions.UIHandler
+import com.eaglesakura.armyknife.android.extensions.postOrRun
 import com.eaglesakura.armyknife.runtime.extensions.withChildContext
 import com.eaglesakura.firearm.aidl.IRemoteProcedureClient
 import com.eaglesakura.firearm.aidl.IRemoteProcedureService
@@ -45,11 +49,19 @@ internal class ServerConnectionImpl(
     override val connectionHints: Bundle
         get() = _connectionHints!!
 
+    private val registry = LifecycleRegistry(this)
+
+    init {
+        UIHandler.postOrRun {
+            registry.currentState = Lifecycle.State.CREATED
+        }
+    }
+
     /**
      * Connect remote service.
      */
     internal suspend fun connect(options: Bundle) {
-        context.bindService(intent, this, BIND_AUTO_CREATE)
+        context.bindService(intent, this@ServerConnectionImpl, BIND_AUTO_CREATE)
         while (coroutineContext.isActive) {
             if (aidl != null) {
                 val result = withChildContext(Dispatchers.IO) {
@@ -58,6 +70,7 @@ internal class ServerConnectionImpl(
                 RegisterResult(result).also {
                     this._connectionId = it.connectionId
                     this._connectionHints = it.connectionHings!!
+                    this.registry.currentState = Lifecycle.State.RESUMED
                 }
                 return
             }
@@ -90,6 +103,7 @@ internal class ServerConnectionImpl(
         aidl = null
         _connectionId = null
         _connectionHints = null
+        registry.currentState = Lifecycle.State.DESTROYED
     }
 
     /**
@@ -128,4 +142,6 @@ internal class ServerConnectionImpl(
             it.result = result
         }.bundle
     }
+
+    override fun getLifecycle(): Lifecycle = registry
 }

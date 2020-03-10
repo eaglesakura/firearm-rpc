@@ -9,11 +9,11 @@ import com.eaglesakura.firearm.rpc.ProcedureConnection
  *
  * val connection = ...
  * connection.use {
- *      require(connection is Remote)
+ *      // execute connection.
  * }
  */
-suspend fun <C : ProcedureConnection, T> C.use(block: (suspend (connection: C) -> T)) {
-    try {
+suspend fun <C : ProcedureConnection, T> C.use(block: (suspend (connection: C) -> T)): T {
+    return try {
         block(this)
     } finally {
         disconnect()
