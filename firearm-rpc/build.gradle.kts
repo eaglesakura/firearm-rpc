@@ -7,7 +7,7 @@ dependencies {
     /**
      * Kotlin support
      */
-    "implementation"("com.eaglesakura.armyknife.armyknife-runtime:armyknife-runtime:1.3.6")
+    "implementation"("com.eaglesakura.armyknife.armyknife-runtime:armyknife-runtime:1.3.7")
     "implementation"("com.eaglesakura.armyknife.armyknife-jetpack:armyknife-jetpack:1.4.9")
     "implementation"("com.eaglesakura.armyknife.armyknife-android-bundle:armyknife-android-bundle:1.3.0")
 
