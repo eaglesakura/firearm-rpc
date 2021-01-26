@@ -13,13 +13,13 @@ class ServerProcedureRouter {
         path: String,
         builder: (procedure: ServerProcedure) -> Unit = {}
     ):
-            ServerProcedure {
-        return ServerProcedure(path)
-            .also { proc ->
-                builder(proc)
-                table[path] = proc
-            }
-    }
+        ServerProcedure {
+            return ServerProcedure(path)
+                .also { proc ->
+                    builder(proc)
+                    table[path] = proc
+                }
+        }
 
     /**
      * Handler in server.

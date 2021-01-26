@@ -18,11 +18,11 @@ import com.eaglesakura.firearm.rpc.ProcedureConnection
 import com.eaglesakura.firearm.rpc.internal.blockingRunInWorker
 import com.eaglesakura.firearm.rpc.service.ProcedureClientCallback
 import com.eaglesakura.firearm.rpc.service.ProcedureServerConnection
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.yield
-import kotlin.coroutines.coroutineContext
 
 internal class ServerConnectionImpl(
     private val context: Context,
@@ -32,7 +32,9 @@ internal class ServerConnectionImpl(
     private val intent: Intent,
 
     private val callback: ProcedureClientCallback
-) : IRemoteProcedureClient.Stub(), ServiceConnection, ProcedureConnection,
+) : IRemoteProcedureClient.Stub(),
+    ServiceConnection,
+    ProcedureConnection,
     ProcedureServerConnection {
 
     private var name: ComponentName? = null
@@ -114,10 +116,13 @@ internal class ServerConnectionImpl(
         val aidl = this.aidl ?: throw IllegalStateException("Server not connected[$intent]")
         // call remote task.
         val result = blockingRunInWorker("Client:[$connectionId]->[Server]:$path") {
-            aidl.requestFromClient(connectionId, RemoteRequest().also {
-                it.path = path
-                it.arguments = arguments
-            }.bundle)!!
+            aidl.requestFromClient(
+                connectionId,
+                RemoteRequest().also {
+                    it.path = path
+                    it.arguments = arguments
+                }.bundle
+            )!!
         }
         return RemoteRequest.Result(result).result!!
     }

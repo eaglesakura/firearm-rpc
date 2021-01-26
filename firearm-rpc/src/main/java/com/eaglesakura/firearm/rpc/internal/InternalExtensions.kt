@@ -3,10 +3,10 @@ package com.eaglesakura.firearm.rpc.internal
 import androidx.annotation.WorkerThread
 import com.eaglesakura.armyknife.android.extensions.assertWorkerThread
 import com.eaglesakura.firearm.rpc.Configure
+import kotlin.concurrent.thread
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.runBlocking
-import kotlin.concurrent.thread
 
 /**
  * Blocking run in new worker thread.
