@@ -22,4 +22,3 @@ fastlane/report.xml
 *.hprof
 /artifacts
 /*.log
-dependencies.txt

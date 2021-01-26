@@ -33,7 +33,7 @@ class ExampleRemoteProcedureServerService : LifecycleService(), ProcedureService
         }
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         console("onBind[$intent]")
         return serverService.binder
     }
