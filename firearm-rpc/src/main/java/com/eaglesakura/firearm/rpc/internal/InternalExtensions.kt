@@ -16,14 +16,14 @@ fun <T> blockingRunInWorker(name: String, block: () -> T): T {
     assertWorkerThread()
     val channel = Channel<Pair<T?, Exception?>>()
     thread(name = name) {
-        Configure.log("prc-worker", "Execute $name")
+        Configure.log("rpc-worker", "Execute $name")
         try {
             val result = Pair(block(), null)
             channel.sendBlocking(result)
         } catch (e: Exception) {
             channel.sendBlocking(Pair(null, e))
         } finally {
-            Configure.log("prc-worker", "Finish $name")
+            Configure.log("rpc-worker", "Finish $name")
         }
     }
 
