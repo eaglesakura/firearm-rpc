@@ -1,8 +1,6 @@
 package com.eaglesakura.firearm.rpc.service.internal
 
 import android.os.Bundle
-import com.eaglesakura.armyknife.persistence.extensions.delegateBundleExtra
-import com.eaglesakura.armyknife.persistence.extensions.delegateStringExtra
 
 /**
  * Result at IRemoteProcedureServer.register()
@@ -15,10 +13,14 @@ internal class RegisterResult internal constructor(
     /**
      * Unique id of your client.
      */
-    var connectionId: String by bundle.delegateStringExtra("request.EXTRA_ID", "")
+    var connectionId: String
+        get() = bundle.getString("request.EXTRA_ID") ?: ""
+        set(value) = bundle.putString("request.EXTRA_ID", value)
 
     /**
      * Options in register.
      */
-    var connectionHings: Bundle? by bundle.delegateBundleExtra("request.EXTRA_OPTIONS")
+    var connectionHings: Bundle?
+        get() = bundle.getBundle("request.EXTRA_OPTIONS")
+        set(value) = bundle.putBundle("request.EXTRA_OPTIONS", value)
 }

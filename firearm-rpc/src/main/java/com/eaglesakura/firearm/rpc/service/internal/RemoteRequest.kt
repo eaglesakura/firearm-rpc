@@ -1,8 +1,6 @@
 package com.eaglesakura.firearm.rpc.service.internal
 
 import android.os.Bundle
-import com.eaglesakura.armyknife.persistence.extensions.delegateBundleExtra
-import com.eaglesakura.armyknife.persistence.extensions.delegateStringExtra
 
 internal class RemoteRequest internal constructor(
     internal val bundle: Bundle = Bundle()
@@ -10,17 +8,23 @@ internal class RemoteRequest internal constructor(
     /**
      * Required.
      */
-    var path: String by bundle.delegateStringExtra("request.EXTRA_PATH", "/")
+    var path: String
+        get() = bundle.getString("request.EXTRA_PATH") ?: "/"
+        set(value) = bundle.putString("request.EXTRA_PATH", value)
 
     /**
      * Optional.
      * arguments of Request.
      */
-    var arguments: Bundle? by bundle.delegateBundleExtra("request.EXTRA_ARGUMENTS")
+    var arguments: Bundle?
+        get() = bundle.getBundle("request.EXTRA_ARGUMENTS")
+        set(value) = bundle.putBundle("request.EXTRA_ARGUMENTS", value)
 
     internal class Result(
         val bundle: Bundle = Bundle()
     ) {
-        var result: Bundle? by bundle.delegateBundleExtra("request.result.EXTRA_RESULT")
+        var result: Bundle?
+            get() = bundle.getBundle("request.result.EXTRA_RESULT")
+            set(value) = bundle.putBundle("request.result.EXTRA_RESULT", value)
     }
 }
