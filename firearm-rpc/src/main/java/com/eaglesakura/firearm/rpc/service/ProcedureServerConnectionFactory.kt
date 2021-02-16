@@ -5,10 +5,10 @@ package com.eaglesakura.firearm.rpc.service
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import com.eaglesakura.armyknife.runtime.extensions.withChildContext
 import com.eaglesakura.firearm.rpc.service.internal.ServerConnectionImpl
 import com.eaglesakura.firearm.rpc.service.routers.ClientProcedureRouter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Client to Server connection factory.
@@ -40,7 +40,7 @@ object ProcedureServerConnectionFactory {
         var options: Bundle? = null
 
         suspend fun connect(): ProcedureServerConnection {
-            return withChildContext(Dispatchers.Main) {
+            return withContext(Dispatchers.Main) {
                 val connection = ServerConnectionImpl(
                     context,
                     serviceIntent,

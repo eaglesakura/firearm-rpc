@@ -7,11 +7,14 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import androidx.annotation.UiThread
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleRegistry
 import com.eaglesakura.armyknife.android.extensions.UIHandler
+import com.eaglesakura.armyknife.android.extensions.assertUIThread
+import com.eaglesakura.armyknife.android.extensions.assertWorkerThread
 import com.eaglesakura.armyknife.android.extensions.postOrRun
-import com.eaglesakura.armyknife.runtime.extensions.withChildContext
+import com.eaglesakura.armyknife.android.extensions.runBlockingOnUiThread
 import com.eaglesakura.firearm.aidl.IRemoteProcedureClient
 import com.eaglesakura.firearm.aidl.IRemoteProcedureService
 import com.eaglesakura.firearm.rpc.ProcedureConnection
@@ -22,6 +25,7 @@ import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 
 internal class ServerConnectionImpl(
@@ -62,11 +66,13 @@ internal class ServerConnectionImpl(
     /**
      * Connect remote service.
      */
+    @UiThread
     internal suspend fun connect(options: Bundle) {
+        assertUIThread()
         context.bindService(intent, this@ServerConnectionImpl, BIND_AUTO_CREATE)
         while (coroutineContext.isActive) {
             if (aidl != null) {
-                val result = withChildContext(Dispatchers.IO) {
+                val result = withContext(Dispatchers.Default) {
                     aidl!!.register(this@ServerConnectionImpl, options)!!
                 }
                 RegisterResult(result).also {
@@ -95,17 +101,21 @@ internal class ServerConnectionImpl(
         // TODO: on Crash remote process.
     }
 
+    @UiThread
     override fun disconnect() {
+        assertWorkerThread()
         aidl?.also {
             it.unregister(connectionId)
         }
 
-        context.unbindService(this)
-        name = null
-        aidl = null
-        _connectionId = null
-        _connectionHints = null
-        registry.currentState = Lifecycle.State.DESTROYED
+        runBlockingOnUiThread {
+            context.unbindService(this)
+            name = null
+            aidl = null
+            _connectionId = null
+            _connectionHints = null
+            registry.currentState = Lifecycle.State.DESTROYED
+        }
     }
 
     /**

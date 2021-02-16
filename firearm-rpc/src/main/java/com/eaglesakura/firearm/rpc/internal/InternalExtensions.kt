@@ -33,6 +33,7 @@ fun <T> blockingRunInWorker(name: String, block: () -> T): T {
     if (result.second != null) {
         throw result.second!!
     } else {
+        @Suppress("UNCHECKED_CAST")
         return result.first as T
     }
 }
